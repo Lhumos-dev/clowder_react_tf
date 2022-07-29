@@ -1,0 +1,5 @@
+app-cred-*-openrc.sh
+.terraform
+.terraform.lock.hcl
+terraform.tfstate*
+castor.tfvars
