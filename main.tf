@@ -143,7 +143,7 @@ locals {
   ]
   # Add an editor and git
   devel_inline = [
-    "sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt install -y vim git"
+    "sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt install -y vim git rsync"
   ]
   # Reboot to restart services and mount volume
   reboot_inline = [
