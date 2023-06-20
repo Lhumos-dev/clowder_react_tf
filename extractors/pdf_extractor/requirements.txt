@@ -1,0 +1,4 @@
+PyPDF==3.10.0
+pyclowder==2.7.0
+requests==2.21.0
+pathvalidate==3.0.0

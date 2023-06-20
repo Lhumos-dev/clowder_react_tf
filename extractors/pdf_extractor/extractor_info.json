@@ -1,0 +1,24 @@
+{
+  "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
+  "name": "extractor-pdfpreview",
+  "version": "0.1",
+  "description": "Makes a preview-able copy of a PDF file, and takes an image copy of all pages.",
+  "author": "Alan O'Cais <alan.ocais@cecam.org>",
+  "contributors": [],
+  "contexts": [{}],
+  "repository": [
+    {
+      "repType": "git",
+      "repUrl": "https://github.com/ocaisa/clowder_react_tf"
+    }
+  ],
+  "process": {
+    "file": [
+      "application/pdf"
+    ]
+  },
+  "external_services": [],
+  "dependencies": [],
+  "bibtex": [],
+  "labels": ["Type/PDF"]
+}
