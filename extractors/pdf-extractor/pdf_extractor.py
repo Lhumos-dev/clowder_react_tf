@@ -181,7 +181,7 @@ class PDFExtractor(Extractor):
             # Example: Notify success
             logger.debug(
                 "PDF extraction complete (previews: PDF %8.2f MB, Images %8.2f KB)!"
-                % (result["size_mb"], result["preview_images_size_kb"])
+                % (result["pdf_size_mb"], result["preview_images_size_kb"])
             )
 
 
