@@ -1,0 +1,30 @@
+{
+  "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
+  "name": "extractor-presentation",
+  "version": "0.1",
+  "description": "Extract slides from a presentation, and make a compressed version for web consumption.",
+  "author": "Alan O'Cais <alan.ocais@cecam.org>",
+  "contributors": [],
+  "contexts": [{
+        "nrslides": "http://schema.org/Integer",
+        "listslides": "http://schema.org/ItemList",
+        "algorithm": "http://schema.org/Text",
+        "settings": "http://schema.org/ItemList",
+        "previews": "http://schema.org/ItemList"
+    }],
+  "repository": [
+    {
+      "repType": "git",
+      "repUrl": "https://github.com/ocaisa/clowder_react_tf"
+    }
+  ],
+  "process": {
+    "file": [
+      "video.*"
+    ]
+  },
+  "external_services": [],
+  "dependencies": [],
+  "bibtex": [],
+  "labels": ["Type/Video"]
+}

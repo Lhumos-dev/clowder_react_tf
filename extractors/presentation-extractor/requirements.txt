@@ -1,0 +1,6 @@
+pyclowder==2.7.0
+requests==2.21.0
+opencv-contrib-python-headless==4.7.0.72
+numpy==1.25.0
+PyYAML==5.4.1
+pathvalidate==3.0.0
