@@ -414,7 +414,9 @@ class VideoMetaData(Extractor):
 
         # First let's set the encoders off in the background to create our previews (uses only half available
         # processors so should be safe to leave in the background)
+        self.logger.debug(resource)
         file_name = os.path.splitext(sanitize_filename(resource["name"]))
+        self.logger.debug(file_name)
         mp4_preview = "%s.mp4" % file_name
         webm_preview = "%s.webm" % file_name
         encode_job = multiprocessing.Process(
