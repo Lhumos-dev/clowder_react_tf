@@ -5,7 +5,7 @@ masks:
 #    size_y: 300
   - location: bottom-right
     size_x: 20%  # relative value
-    size_y: 100% # ignore whole side as video may be top or bottom
+    size_y: 20% # ignore whole side as video may be top or bottom
 
 slides:
   - algorithm: advanced  # the default

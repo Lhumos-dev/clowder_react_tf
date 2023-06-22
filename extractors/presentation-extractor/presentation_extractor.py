@@ -748,6 +748,7 @@ class VideoMetaData(Extractor):
                         proxy_average = min_pixel_change_av
 
                     if (whites > trigger_ratio * proxy_average) or frame_index == 0:
+                        self.logger.debug("Got a trigger!")
                         # We have a trigger, make sure it's ok to record it
                         if not ok_to_trigger:
                             if (frame_index - last_temp_trigger_frame) > ok_to_trigger_frames:
@@ -768,7 +769,7 @@ class VideoMetaData(Extractor):
                             # We ensure we only start looking at whether is a trigger is allowed after sufficient time
                             # has passed
                             last_temp_trigger_frame = frame_index + trigger_minimum_slide_length_in_frames
-                            ok_to_trigger - False
+                            ok_to_trigger = False
                             # Restart the averaging process
                             average = 0.0
                             av_array[:] = 0
