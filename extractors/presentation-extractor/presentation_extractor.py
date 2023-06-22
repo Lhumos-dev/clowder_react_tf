@@ -436,7 +436,7 @@ class VideoMetaData(Extractor):
                 dict(
                     [
                         (a, b)
-                        for a, b in self.algorithm_settings.iteritems()
+                        for a, b in self.algorithm_settings.iter()
                         if a in default_settings_basic.keys()
                     ]
                 )
@@ -453,7 +453,7 @@ class VideoMetaData(Extractor):
                 dict(
                     [
                         (a, b)
-                        for a, b in self.algorithm_settings.iteritems()
+                        for a, b in self.algorithm_settings.iter()
                         if a in default_settings_advanced.keys()
                     ]
                 )
