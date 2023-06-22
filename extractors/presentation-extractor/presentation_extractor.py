@@ -81,11 +81,11 @@ default_settings_advanced = {
     # Bump in white pixels that causes a trigger (5 means 5 times previous count)
     "trigger_ratio": 5,
     # Minimum gap between triggers (5 there should have been no other triggers in the last 5 seconds)
-    "trigger_gap": 5,
+    "trigger_gap": 2,
     # Percent change in pixels that must be seen to allow for a trigger
     "minimum_total_change": 0.06,
     # Minimum slide length in seconds
-    "minimum_slide_length": 25,
+    "minimum_slide_length": 20,
     # Time over which we should average the motion capture
     "motion_capture_averaging_time": 10,
     # Amount of time to delay a screenshot (slide transitions can mean bad screenshots)
@@ -131,7 +131,7 @@ def create_video_previews(filename, output_dir, mp4_filename, webm_filename, web
     # using the shell is a potential security hazard but our filenames are sanitized by Clowder
     subprocess.check_output(ffmpeg_command, stderr=subprocess.STDOUT, shell=True)
     ffmpeg_command = (
-        ffmpeg_stub + mp4_settings + mp4_audio + "-pass 2 -f mp4 " + mp4_filename
+        ffmpeg_stub + mp4_settings + mp4_audio + "-pass 2 -f mp4 " + '"%s"' % mp4_filename
     )
     subprocess.check_output(ffmpeg_command, stderr=subprocess.STDOUT, shell=True)
     # Now do webm
@@ -145,7 +145,7 @@ def create_video_previews(filename, output_dir, mp4_filename, webm_filename, web
             + webm_settings
             + webm_audio
             + "-pass 2 -f webm "
-            + webm_filename
+            + '"%s"' % webm_filename
         )
         subprocess.check_output(ffmpeg_command, stderr=subprocess.STDOUT, shell=True)
 
@@ -801,6 +801,7 @@ class VideoMetaData(Extractor):
             # Grab the image
             _, frame = cap.read()
             # Save the image
+            self.logger.debug(slide)
             cv2.imwrite(slide[2], frame, [cv2.IMWRITE_WEBP_QUALITY, 80])
         # Add am empty slide to hold the terminating timestamp
         slides.append((frame_index, final_timestamp, None))
