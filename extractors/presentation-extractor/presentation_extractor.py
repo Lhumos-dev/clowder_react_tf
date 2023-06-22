@@ -81,7 +81,7 @@ default_settings_advanced = {
     # Bump in white pixels that causes a trigger (5 means 5 times previous count)
     "trigger_ratio": 5,
     # Minimum gap between triggers (5 there should have been no other triggers in the last 5 seconds)
-    "trigger_gap": 2,
+    "trigger_gap": 5,
     # Percent change in pixels that must be seen to allow for a trigger
     "minimum_total_change": 0.06,
     # Minimum slide length in seconds
@@ -774,19 +774,19 @@ class VideoMetaData(Extractor):
                             average = 0.0
                             av_array[:] = 0
 
-                # Update our average and the associated array. Since we know that the average is restarted after every
-                # trigger things are sequential, and it is safe to use modulo here.
-                if previous_trigger_frame != frame_index:
-                    # First remove the value of the previous entry from the average
-                    average -= av_array[frame_index % averaging_frames] / float(
-                        averaging_frames
-                    )
-                    # Add the new value to the array
-                    av_array[frame_index % averaging_frames] = whites
-                    # Update the average
-                    average += av_array[frame_index % averaging_frames] / float(
-                        averaging_frames
-                    )
+            # Update our average and the associated array. Since we know that the average is restarted after every
+            # trigger things are sequential, and it is safe to use modulo here.
+            if previous_trigger_frame != frame_index:
+                # First remove the value of the previous entry from the average
+                average -= av_array[frame_index % averaging_frames] / float(
+                    averaging_frames
+                )
+                # Add the new value to the array
+                av_array[frame_index % averaging_frames] = whites
+                # Update the average
+                average += av_array[frame_index % averaging_frames] / float(
+                    averaging_frames
+                )
 
             # Let people know how far along we are
             frame_index += 1
