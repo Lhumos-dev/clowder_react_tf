@@ -3,7 +3,8 @@ FROM python:3.10
 RUN apt update
 RUN apt install -y ffmpeg
 
-COPY presentation_extractor.py requirements.txt extractor_info.json config/ ./
+COPY presentation_extractor.py requirements.txt extractor_info.json ./
+COPY config/ ./
 
 RUN pip install -r requirements.txt --no-cache-dir
 
