@@ -4,6 +4,10 @@ terraform {
     openstack = {
       source = "terraform-provider-openstack/openstack"
     }
+    cloudflare = {
+      source = "cloudflare/cloudflare"
+      version = "~> 4"
+    }
   }
 }
 
@@ -223,6 +227,23 @@ resource "null_resource" "remote-exec-react" {
       "bash react_provision.sh"
     ]
   }
+}
+
+# Configure Cloudflare
+data "cloudflare_zones" "domain" {
+  filter {
+    name   = var.domain
+    status = "active"
+    paused = false
+  }
+}
+
+resource "cloudflare_record" "clowder" {
+  zone_id = data.cloudflare_zones.domain.zones[0].id
+  name    = "clowder"
+  value   = openstack_compute_floatingip_associate_v2.fip_clowder.floating_ip
+  type    = "A"
+  proxied = true
 }
 
 # Output VM IP Addresses

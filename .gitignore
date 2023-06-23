@@ -1,4 +1,4 @@
-app-cred-*-openrc.sh
+app-cred-*.sh
 .terraform
 .terraform.lock.hcl
 terraform.tfstate*

@@ -50,3 +50,9 @@ variable "clowder_volume_id" {
   nullable = false
 }
 
+variable "domain" {
+  type    = string
+  sensitive = true
+  description = "Cloudflare managed TLD to associate clowder with for https"
+  nullable = false
+}
