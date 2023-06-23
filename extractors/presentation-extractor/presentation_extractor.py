@@ -746,11 +746,11 @@ class VideoMetaData(Extractor):
                         self.logger.debug("Found slide transition at %s", timestamp)
 
                         # Set the path now, but write the image later
-                        slidepath = os.path.join(
-                            self.tempdir, "slide%05d.jpg" % (len(slides) + 1)
+                        slide_path = os.path.join(
+                            self.tempdir, "slide%05d.webp" % (len(slides) + 1)
                         )
 
-                        slides.append((frame_index, timestamp, slidepath))
+                        slides.append((frame_index, timestamp, slide_path))
 
                         previous_trigger_frame = frame_index
                         # Restart the averaging process
