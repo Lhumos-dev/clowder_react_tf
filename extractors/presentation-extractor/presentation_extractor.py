@@ -7,7 +7,6 @@ Author Alan O'Cais <alan.ocais@cecam.org>
 """
 
 import datetime
-import json
 import logging
 import multiprocessing
 import os
@@ -15,7 +14,6 @@ import shutil
 import subprocess
 import tempfile
 import time
-import requests
 
 import cv2  # OpenCV
 import numpy as np
@@ -80,8 +78,6 @@ from pathvalidate import sanitize_filename
 default_settings_advanced = {
     # Bump in white pixels that causes a trigger (5 means 5 times previous count)
     "trigger_ratio": 5,
-    # Minimum gap between triggers (5 there should have been no other triggers in the last 5 seconds)
-    "trigger_gap": 5,
     # Percent change in pixels that must be seen to allow for a trigger
     "minimum_total_change": 0.06,
     # Minimum slide length in seconds
@@ -131,7 +127,11 @@ def create_video_previews(filename, output_dir, mp4_filename, webm_filename, web
     # using the shell is a potential security hazard but our filenames are sanitized by Clowder
     subprocess.check_output(ffmpeg_command, stderr=subprocess.STDOUT, shell=True)
     ffmpeg_command = (
-        ffmpeg_stub + mp4_settings + mp4_audio + "-pass 2 -f mp4 " + '"%s"' % mp4_filename
+        ffmpeg_stub
+        + mp4_settings
+        + mp4_audio
+        + "-pass 2 -f mp4 "
+        + '"%s"' % mp4_filename
     )
     subprocess.check_output(ffmpeg_command, stderr=subprocess.STDOUT, shell=True)
     # Now do webm
@@ -220,7 +220,7 @@ class VideoMetaData(Extractor):
                     "Unknown filetype %s (default support is for %s, other file types must be manually "
                     "submitted), skipping",
                     resource["file_ext"],
-                    accepted_formats
+                    accepted_formats,
                 )
                 return pyclowder.utils.CheckMessage.ignore
             else:
@@ -228,9 +228,7 @@ class VideoMetaData(Extractor):
 
         return pyclowder.utils.CheckMessage.download  # or bypass
 
-    def process_message(
-        self, connector, host, secret_key, resource, parameters
-    ):
+    def process_message(self, connector, host, secret_key, resource, parameters):
         """The actual extractor: we process the video and upload the results"""
         self.logger.debug("Clowder host: %s", host)
         self.logger.debug("Received resources: %s", resource)
@@ -607,7 +605,6 @@ class VideoMetaData(Extractor):
         :param filename: path to the video
         :param masks: list of area to mask out before doing slide transition detection
         :param trigger_ratio: the relative ratio of changed pixels that causes a trigger
-        :param trigger_gap: minimum gap between triggers (in seconds)
         :param minimum_total_change: minimum number of pixels that must change to register a trigger (on a scale between 0
         to 1, with a default of 6%)
         :param minimum_slide_length: minimum length of a slide (in seconds)
@@ -624,7 +621,6 @@ class VideoMetaData(Extractor):
             masks = [masks]
 
         trigger_ratio = options.get("trigger_ratio")
-        trigger_gap = options.get("trigger_gap")
         minimum_total_change = options.get("minimum_total_change")
         minimum_slide_length = options.get("minimum_slide_length")
         motion_capture_averaging_time = options.get("motion_capture_averaging_time")
@@ -638,8 +634,8 @@ class VideoMetaData(Extractor):
         # Grab some basic information about the video
         width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
         height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        # I would like to change the sampling FPS to something like 5fps since this would mean processing a lot less frames
-        # but using cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index) is actually very slow and not worth the change
+        # I would like to change the sampling FPS to something like 5fps since this would mean processing a lot less
+        # frames but using cap.set(cv2.CAP_PROP_POS_FRAMES, frame_index) is actually very slow and not worth the change
         fps = cap.get(cv2.CAP_PROP_FPS)  # Assuming non-variable FPS
         num_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 
@@ -664,9 +660,9 @@ class VideoMetaData(Extractor):
         if minimum_slide_length > fps * num_frames:
             errors += ["The video length is less than the minimum slide length!"]
         # Check the motion_capture_averaging_time makes sense
-        if motion_capture_averaging_time > minimum_slide_length - trigger_gap:
+        if motion_capture_averaging_time > minimum_slide_length:
             errors += [
-                "motion_capture_averaging_time+trigger_gap cannot be longer than minimum_slide_length!"
+                "motion_capture_averaging_time cannot be longer than minimum_slide_length!"
             ]
 
         if errors:
@@ -685,12 +681,8 @@ class VideoMetaData(Extractor):
 
         # Set the number of frames for the minimum length of a slide
         minimum_slide_length_in_frames = int(round(minimum_slide_length * fps))
-        ok_to_trigger_frames = int(round(trigger_gap * fps))
-        trigger_minimum_slide_length_in_frames = minimum_slide_length_in_frames - ok_to_trigger_frames
 
-        # Allocate space for our average of the changes of the frames in the last averaging_time seconds
-        # and add  seconds to make sure we have don't have lots of triggers before the next frame
-        # (which would indicate a plain video)
+        #  Allocate space for our average of the changes of the frames in the last averaging_time seconds
         averaging_frames = int(motion_capture_averaging_time * fps)
         av_array = np.zeros(averaging_frames, dtype=int)
 
@@ -699,21 +691,21 @@ class VideoMetaData(Extractor):
             history=averaging_frames, detectShadows=False
         )
 
-        # Set the number of frames we can safely ignore after we have a trigger,which is the minimum slide length
-        # adjusted for our averaging_frames frames so that we have the correct average and bg memory
-        ignore_frames = (trigger_minimum_slide_length_in_frames * fps) - averaging_frames
+        # Set the number of frames we can safely ignore after we have a trigger,which is the minimum
+        # slide length adjusted for our averaging_frames frames so that we have the correct average and bg memory
+        ignore_frames = (minimum_slide_length * fps) - averaging_frames
 
         frame_index = 0
         previous_trigger_frame = 0
-        last_temp_trigger_frame = 0
         average = 0.0
         percent_processed = 0
-        ok_to_trigger = True
         while frame_index < num_frames:
             ret, frame = cap.read()
 
             if not ret:
                 break
+
+            orig_frame = np.copy(frame)
 
             # Apply our mask
             try:
@@ -722,8 +714,8 @@ class VideoMetaData(Extractor):
             except (KeyError, ValueError) as err:
                 self.logger.error("Failed to apply mask %s: %s", mask, err)
 
-            # Check to we are in the region where a slide will never be extracted (due to min_slide_length). If so,
-            # don't do any of the hard work.
+            # Check to we are in the region where a slide will never be extracted (due to
+            # min_slide_length). If so, don't do any of the hard work.
 
             if (
                 frame_index > (previous_trigger_frame + ignore_frames)
@@ -740,53 +732,44 @@ class VideoMetaData(Extractor):
                 whites = int(cv2.countNonZero(fgmask))
 
                 # Check if we have a trigger
-                frame_count_from_last_trigger = frame_index - previous_trigger_frame
-                if frame_count_from_last_trigger > trigger_minimum_slide_length_in_frames or frame_index == 0:
+                if (
+                    frame_index - previous_trigger_frame
+                ) > minimum_slide_length_in_frames or frame_index == 0:
                     if average > min_pixel_change_av:
                         proxy_average = average
                     else:
                         proxy_average = min_pixel_change_av
 
                     if (whites > trigger_ratio * proxy_average) or frame_index == 0:
-                        self.logger.debug("Got a trigger!")
-                        # We have a trigger, make sure it's ok to record it
-                        if not ok_to_trigger:
-                            if (frame_index - last_temp_trigger_frame) > ok_to_trigger_frames:
-                                ok_to_trigger = True
-                            last_temp_trigger_frame = frame_index
+                        # Grab the slide
+                        timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)
+                        self.logger.debug("Found slide transition at %s", timestamp)
 
-                        if frame_count_from_last_trigger > minimum_slide_length_in_frames or frame_index == 0:
-                            # Grab the slide
-                            timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)
-                            self.logger.debug("Found slide transition at %s", timestamp)
+                        # Set the path now, but write the image later
+                        slidepath = os.path.join(
+                            self.tempdir, "slide%05d.jpg" % (len(slides) + 1)
+                        )
 
-                            # Set the path now, but write the image later
-                            slidepath = os.path.join(self.tempdir, "slide%05d.webp" % (len(slides) + 1))
+                        slides.append((frame_index, timestamp, slidepath))
 
-                            slides.append((frame_index, timestamp, slidepath))
+                        previous_trigger_frame = frame_index
+                        # Restart the averaging process
+                        average = 0.0
+                        av_array[:] = 0
 
-                            previous_trigger_frame = frame_index
-                            # We ensure we only start looking at whether is a trigger is allowed after sufficient time
-                            # has passed
-                            last_temp_trigger_frame = frame_index + trigger_minimum_slide_length_in_frames
-                            ok_to_trigger = False
-                            # Restart the averaging process
-                            average = 0.0
-                            av_array[:] = 0
-
-            # Update our average and the associated array. Since we know that the average is restarted after every
-            # trigger things are sequential, and it is safe to use modulo here.
-            if previous_trigger_frame != frame_index:
-                # First remove the value of the previous entry from the average
-                average -= av_array[frame_index % averaging_frames] / float(
-                    averaging_frames
-                )
-                # Add the new value to the array
-                av_array[frame_index % averaging_frames] = whites
-                # Update the average
-                average += av_array[frame_index % averaging_frames] / float(
-                    averaging_frames
-                )
+                # Update our average and the associated array. Since we know that the average is restarted after every
+                # trigger things are sequential and it is safe to use modulo here.
+                if previous_trigger_frame != frame_index:
+                    # First remove the value of the previous entry from the average
+                    average -= av_array[frame_index % averaging_frames] / float(
+                        averaging_frames
+                    )
+                    # Add the new value to the array
+                    av_array[frame_index % averaging_frames] = whites
+                    # Update the average
+                    average += av_array[frame_index % averaging_frames] / float(
+                        averaging_frames
+                    )
 
             # Let people know how far along we are
             frame_index += 1
@@ -802,7 +785,6 @@ class VideoMetaData(Extractor):
             # Grab the image
             _, frame = cap.read()
             # Save the image
-            self.logger.debug(slide)
             cv2.imwrite(slide[2], frame, [cv2.IMWRITE_WEBP_QUALITY, 80])
         # Add am empty slide to hold the terminating timestamp
         slides.append((frame_index, final_timestamp, None))
@@ -884,12 +866,12 @@ class VideoMetaData(Extractor):
                 self.logger.debug(
                     "Found slide transition at frame %d, time: %s", frame_idx, time_real
                 )
-                slidepath = os.path.join(
+                slide_path = os.path.join(
                     self.tempdir, "slide%05d.png" % (len(results) + 1)
                 )
-                cv2.imwrite(slidepath, frame)
+                cv2.imwrite(slide_path, frame)
 
-                results.append((frame_idx, time_idx, slidepath))
+                results.append((frame_idx, time_idx, slide_path))
 
             prev_frame = frame_gray
 
