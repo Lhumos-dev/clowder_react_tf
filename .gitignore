@@ -3,3 +3,4 @@ app-cred-*-openrc.sh
 .terraform.lock.hcl
 terraform.tfstate*
 castor.tfvars
+__pycache__
