@@ -11,4 +11,4 @@ RUN pip install -r requirements.txt --no-cache-dir
 
 WORKDIR ./
 
-CMD ["python", "presentation_extractor.py", "--heartbeat", "3600"]
+CMD ["python", "presentation_extractor.py", "--heartbeat", "600"]

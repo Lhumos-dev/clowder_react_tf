@@ -777,9 +777,9 @@ class VideoMetaData(Extractor):
             frame_index += 1
             if (frame_index % round(num_frames / 100.0)) == 0:
                 percent_processed += 1
-                self.logger.debug("Processed at %3d %%", percent_processed)
+                self.logger.debug("Processed %03d %%", percent_processed)
                 # Also send to extractor log
-                connector.message_process(resource, "Processed at %3d %%" % percent_processed)
+                connector.message_process(resource, "Processed %03d %%" % percent_processed)
 
         # Now that we know all the transitions, grab the slide image with a configurable offset
         final_timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)
