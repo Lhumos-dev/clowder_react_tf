@@ -456,7 +456,7 @@ class VideoMetaData(Extractor):
                     ]
                 )
             )
-            self.logger.debug(
+            self.logger.info(
                 "Using advanced algorithm for finding slides. settings: %s", settings
             )
             results = self.slide_find_advanced(
@@ -598,15 +598,15 @@ class VideoMetaData(Extractor):
     def slide_find_advanced(self, filename, **kwargs):
         """
         Gather a list of transitions from an input video.
-        The algorithm leverages motion tracking techniques and works well with unprocessed screen capture (heavy compression
-        can introduce false positives). A portion of the image can be masked out for cases where you may have live video
-        superimposed on the frame.
+        The algorithm leverages motion tracking techniques and works well with unprocessed screen capture (heavy
+        compression can introduce false positives). A portion of the image can be masked out for cases where you may
+        have live video superimposed on the frame.
 
         :param filename: path to the video
         :param masks: list of area to mask out before doing slide transition detection
         :param trigger_ratio: the relative ratio of changed pixels that causes a trigger
-        :param minimum_total_change: minimum number of pixels that must change to register a trigger (on a scale between 0
-        to 1, with a default of 6%)
+        :param minimum_total_change: minimum number of pixels that must change to register a trigger (on a scale between
+        0 and 1, with a default of 6%)
         :param minimum_slide_length: minimum length of a slide (in seconds)
         :param motion_capture_averaging_time: the time over which to build up our average of the background (in seconds)
         :param msec_to_delay_screenshot: The amount of delay before taking a screenshot (good for animated slide
@@ -775,7 +775,7 @@ class VideoMetaData(Extractor):
             frame_index += 1
             if (frame_index % round(num_frames / 100.0)) == 0:
                 percent_processed += 1
-                self.logger.debug("Processed at %3d %%", percent_processed)
+                self.logger.info("Processed at %3d %%", percent_processed)
 
         # Now that we know all the transitions, grab the slide image with a configurable offset
         final_timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)
