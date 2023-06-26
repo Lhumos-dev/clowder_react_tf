@@ -213,7 +213,7 @@ class URLExtractor(Extractor):
                     url_metadata['X-Frame-Options'] = req.headers['X-Frame-Options'].upper()
 
                 try:
-                    soup = BeautifulSoup(req.text, "lxml")
+                    soup = BeautifulSoup(req.text)
                     url_metadata['title'] = soup.find("title").string
                 except AttributeError as err:
                     self.logger.error("Failed to extract title from webpage %s: %s", url, err)
