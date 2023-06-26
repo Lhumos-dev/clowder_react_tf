@@ -15,10 +15,10 @@ import pyclowder
 from pyclowder.extractors import Extractor
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, WebDriverException
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from urllib.parse import urlparse, unquote, quote, urlunparse
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
+from urllib3.exceptions import MaxRetryError
 from pathlib import PurePosixPath, PosixPath
 
 
@@ -259,8 +259,7 @@ class URLExtractor(Extractor):
                 # Also upload as a thumbnail
                 self.try_upload_preview_file(pyclowder.files.upload_thumbnail, connector, host, secret_key, resource['id'],
                                              screenshot_webp_file)
-            except (
-            TimeoutException, WebDriverException, IOError) as err:
+            except (TimeoutException, WebDriverException, IOError, MaxRetryError) as err:
                 self.logger.error("Failed to fetch %s: %s", url, err)
             finally:
                 if browser:
