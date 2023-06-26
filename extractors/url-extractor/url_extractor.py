@@ -14,7 +14,7 @@ from bs4 import BeautifulSoup
 import pyclowder
 from pyclowder.extractors import Extractor
 from selenium import webdriver
-from selenium.common.exceptions import TimeoutException, WebDriverException, RemoteDriverServerException, ErrorInResponseException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from urllib.parse import urlparse, unquote, quote, urlunparse
 from urllib.request import urlopen
@@ -262,7 +262,7 @@ class URLExtractor(Extractor):
                 self.try_upload_preview_file(pyclowder.files.upload_thumbnail, connector, host, secret_key, resource['id'],
                                              screenshot_webp_file)
             except (
-            TimeoutException, WebDriverException, RemoteDriverServerException, ErrorInResponseException, IOError) as err:
+            TimeoutException, WebDriverException, IOError) as err:
                 self.logger.error("Failed to fetch %s: %s", url, err)
             finally:
                 if browser:
