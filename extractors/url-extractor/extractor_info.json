@@ -1,0 +1,24 @@
+{
+  "@context": "http://clowder.ncsa.illinois.edu/contexts/extractors.jsonld",
+  "name": "extractor-urlpreview",
+  "version": "0.1",
+  "description": "Gather some information about a URL, in particular looking for Git repos",
+  "author": "Alan O'Cais <alan.ocais@cecam.org>",
+  "contributors": [],
+  "contexts": [{}],
+  "repository": [
+    {
+      "repType": "git",
+      "repUrl": "https://github.com/ocaisa/clowder_react_tf"
+    }
+  ],
+  "process": {
+    "file": [
+      "text/url"
+    ]
+  },
+  "external_services": [],
+  "dependencies": [],
+  "bibtex": [],
+  "labels": ["Type/jsonurl"]
+}

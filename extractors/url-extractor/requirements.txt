@@ -1,0 +1,5 @@
+pyclowder==2.7.0
+requests==2.21.0
+selenium==4.10.0
+beautifulsoup4==4.10.0
+
