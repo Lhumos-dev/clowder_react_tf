@@ -234,11 +234,9 @@ class URLExtractor(Extractor):
 
             browser = None
             try:
-                desired_capabilities = DesiredCapabilities.CHROME.copy()
-                desired_capabilities['chromeOptions'] = {
-                    "args": ["--hide-scrollbars"],
-                }
-                browser = webdriver.Remote(command_executor=self.selenium, capabilities=desired_capabilities,)
+                chrome_options = webdriver.ChromeOptions()
+                chrome_options.add_argument("--hide-scrollbars")
+                browser = webdriver.Remote(command_executor=self.selenium, options=chrome_options)
                 browser.set_script_timeout(30)
                 browser.set_page_load_timeout(30)
                 browser.set_window_size(self.window_size[0], self.window_size[1])
