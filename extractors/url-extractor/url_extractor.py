@@ -15,7 +15,7 @@ import pyclowder
 from pyclowder.extractors import Extractor
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException, WebDriverException
-from urllib.parse import urlparse, unquote, quote, urlunparse
+from urllib.parse import urlparse, unquote, urlunparse, parse_qs
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 from urllib3.exceptions import MaxRetryError
@@ -114,6 +114,28 @@ def get_api_data(url):
 
     return result
 
+
+def get_yt_video_id(url):
+    """
+    Examples:
+    - http://youtu.be/SA2iWivDJiE
+    - http://www.youtube.com/watch?v=_oPAwA_Udwc&feature=feedu
+    - http://www.youtube.com/embed/SA2iWivDJiE
+    - http://www.youtube.com/v/SA2iWivDJiE?version=3&amp;hl=en_US
+    """
+    query = urlparse(url)
+    if query.hostname == 'youtu.be':
+        return query.path[1:]
+    if query.hostname in ('www.youtube.com', 'youtube.com'):
+        if query.path == '/watch':
+            p = parse_qs(query.query)
+            return p['v'][0]
+        if query.path[:7] == '/embed/':
+            return query.path.split('/')[2]
+        if query.path[:3] == '/v/':
+            return query.path.split('/')[2]
+    # fail?
+    return None
 
 class URLExtractor(Extractor):
     def __init__(self):
@@ -259,6 +281,11 @@ class URLExtractor(Extractor):
 
         if not url_metadata["clowder_git_repo"]:
             try:
+                # Check if we have a YouTube URL, if so get the video id
+                yt_video_id = get_yt_video_id(url)
+                if yt_video_id:
+                    url_metadata["clowder_youtube_video_id"] = yt_video_id
+
                 req = requests.get(url)
                 req.raise_for_status()
 
