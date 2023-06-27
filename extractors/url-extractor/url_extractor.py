@@ -128,7 +128,7 @@ class URLExtractor(Extractor):
         self.logger = logging.getLogger(__name__)
 
         self.selenium = os.getenv("SELENIUM_URI", "http://localhost:4444/wd/hub")
-        self.window_size = (1280, 720)  # the default
+        self.window_size = (1366, 768)  # the default
         self.read_settings()
 
     def read_settings(self, filename=None):
@@ -295,6 +295,7 @@ class URLExtractor(Extractor):
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument("--hide-scrollbars")
             chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.addArgument("--start-maximized");
             browser = webdriver.Remote(
                 command_executor=self.selenium, options=chrome_options
             )
