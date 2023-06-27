@@ -41,29 +41,41 @@ def get_github_api_repo_data(repo):
         raise e
     else:
         api_result = json.loads(api_response.read())
+        if 'id' not in api_result:
+            # Probably a dud response, ignore
+            api_result = {}
 
     return api_url, api_result
 
 
 def get_gitlab_api_repo_data(repo, parsed_url):
-    # For GitLab need to quote the repo
-    gl_repo = quote(str(repo), safe='')
-    # Construct the path we are interested in
-    api_path = PosixPath(GITLAB_API_PATH_REPO, gl_repo)
-    api_url = urlunparse(parsed_url._replace(path=str(api_path)))
-
-    # see if we can make a successful API call
+    # Using organisation/repo is unreliable for GitLab, need to first extract the project ID
+    # Make a soup of the repo page
+    page = requests.get(urlunparse(parsed_url._replace(path=str(repo))))
+    soup = BeautifulSoup(page.content, "html.parser")
     api_result = {}
+    api_url = ""
     try:
-        api_response = urlopen(api_url)
-    except HTTPError as e:
-        # Expecting a 404
-        print('Error code for GitLab API call: ', e.code)
-    except URLError as e:
-        print('Reason: ', e.reason)
-        raise e
-    else:
-        api_result = json.loads(api_response.read())
+        project_id = soup.find('body').attrs['data-project-id']
+        # Construct the path we are interested in
+        api_path = PosixPath(GITLAB_API_PATH_REPO, project_id)
+        api_url = urlunparse(parsed_url._replace(path=str(api_path)))
+        # see if we can make a successful API call
+        try:
+            api_response = urlopen(api_url)
+        except HTTPError as e:
+            # Expecting a 404
+            print('Error code for GitLab API call: ', e.code)
+        except URLError as e:
+            print('Reason: ', e.reason)
+            raise e
+        else:
+            api_result = json.loads(api_response.read())
+            if 'id' not in api_result:
+                # Probably a dud response, ignore
+                api_result = {}
+    except KeyError as e:
+        print('KeyError when trying to get GitLab project ID: ', e)
 
     return api_url, api_result
 
@@ -107,7 +119,7 @@ class URLExtractor(Extractor):
         # parse command line and load default logging configuration
         self.setup()
 
-        # setup logging for the exctractor
+        # setup logging for the extractor
         logging.getLogger('pyclowder').setLevel(logging.DEBUG)
         logging.getLogger('__main__').setLevel(logging.DEBUG)
         self.logger = logging.getLogger(__name__)
