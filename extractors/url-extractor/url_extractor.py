@@ -295,7 +295,7 @@ class URLExtractor(Extractor):
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument("--hide-scrollbars")
             chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.addArgument("--start-maximized");
+            chrome_options.add_argument("--start-maximized");
             browser = webdriver.Remote(
                 command_executor=self.selenium, options=chrome_options
             )
