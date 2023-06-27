@@ -294,6 +294,7 @@ class URLExtractor(Extractor):
         try:
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument("--hide-scrollbars")
+            chrome_options.add_argument('--disable-dev-shm-usage')
             browser = webdriver.Remote(
                 command_executor=self.selenium, options=chrome_options
             )
