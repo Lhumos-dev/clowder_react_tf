@@ -267,15 +267,6 @@ class URLExtractor(Extractor):
                         "X-Frame-Options"
                     ].upper()
 
-                try:
-                    soup = BeautifulSoup(req.content, "html.parser")
-                    url_metadata["title"] = soup.find("title").string
-                except AttributeError as err:
-                    self.logger.error(
-                        "Failed to extract title from webpage %s: %s", url, err
-                    )
-                    url_metadata["title"] = ""
-
                 # Assume that we can use https for the link
                 url_metadata["tls"] = True
                 if not url.startswith("https"):
@@ -306,6 +297,11 @@ class URLExtractor(Extractor):
             browser.get(url)
 
             screenshot_png = browser.get_screenshot_as_png()
+            url_metadata["clowder_page_title"] = browser.title
+            # Keep backwards compatibility
+            if not url_metadata["clowder_git_repo"]:
+                url_metadata["title"] = url_metadata["clowder_page_title"]
+
 
             screenshot_png_file = os.path.join(tempdir, "urlscreenshot.png")
             screenshot_webp_file = os.path.join(tempdir, "urlscreenshot.webp")
