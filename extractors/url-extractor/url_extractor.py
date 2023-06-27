@@ -27,7 +27,7 @@ GITLAB_API_PATH_REPO = "/api/v4/projects"
 
 
 def get_github_api_repo_data(repo):
-    api_url = GITHUB_API_REPO + '/' + str(repo)
+    api_url = GITHUB_API_REPO + "/" + str(repo)
     print(api_url)
     # see if we can make a successful API call
     api_result = {}
@@ -35,13 +35,13 @@ def get_github_api_repo_data(repo):
         api_response = urlopen(str(api_url))
     except HTTPError as e:
         # Expecting a 404
-        print('Error code for GitHub API call: ', e.code)
+        print("Error code for GitHub API call: ", e.code)
     except URLError as e:
-        print('Reason: ', e.reason)
+        print("Reason: ", e.reason)
         raise e
     else:
         api_result = json.loads(api_response.read())
-        if 'id' not in api_result:
+        if "id" not in api_result:
             # Probably a dud response, ignore
             api_result = {}
 
@@ -56,7 +56,7 @@ def get_gitlab_api_repo_data(repo, parsed_url):
     api_result = {}
     api_url = ""
     try:
-        project_id = soup.find('body').attrs['data-project-id']
+        project_id = soup.find("body").attrs["data-project-id"]
         # Construct the path we are interested in
         api_path = PosixPath(GITLAB_API_PATH_REPO, project_id)
         api_url = urlunparse(parsed_url._replace(path=str(api_path)))
@@ -65,17 +65,17 @@ def get_gitlab_api_repo_data(repo, parsed_url):
             api_response = urlopen(api_url)
         except HTTPError as e:
             # Expecting a 404
-            print('Error code for GitLab API call: ', e.code)
+            print("Error code for GitLab API call: ", e.code)
         except URLError as e:
-            print('Reason: ', e.reason)
+            print("Reason: ", e.reason)
             raise e
         else:
             api_result = json.loads(api_response.read())
-            if 'id' not in api_result:
+            if "id" not in api_result:
                 # Probably a dud response, ignore
                 api_result = {}
     except KeyError as e:
-        print('KeyError when trying to get GitLab project ID: ', e)
+        print("KeyError when trying to get GitLab project ID: ", e)
 
     return api_url, api_result
 
@@ -84,13 +84,15 @@ def get_api_data(url):
     # First let's parse the URL we were given
     parsed_url = urlparse(url)
 
-    result = {'clowder_git_repo': False}
+    result = {"clowder_git_repo": False}
     if parsed_url.path:
         # Check path has at least '/' + 2 components (drop anything from a ';')
-        path_components = list(PurePosixPath(unquote(parsed_url.path).split(';')[0]).parts)
+        path_components = list(
+            PurePosixPath(unquote(parsed_url.path).split(";")[0]).parts
+        )
         if len(path_components) >= 3:
             # Remove a .git if it exists
-            path_components[2] = path_components[2].replace('.git', '')
+            path_components[2] = path_components[2].replace(".git", "")
 
             # This construction ('org/repo') is useful for both GitLab and GitHub APIs
             repo = PosixPath(*path_components[1:3])
@@ -98,19 +100,20 @@ def get_api_data(url):
             gh_api_url, gh_result = get_github_api_repo_data(repo)
             if gh_result:
                 result = gh_result
-                result['clowder_git_repo'] = True
-                result['clowder_git_type'] = "github"
-                result['clowder_git_api_url'] = gh_api_url
+                result["clowder_git_repo"] = True
+                result["clowder_git_type"] = "github"
+                result["clowder_git_api_url"] = gh_api_url
             else:
                 # If that didn't work, try GitLab (should work for private and public instances)
                 gl_api_url, gl_result = get_gitlab_api_repo_data(repo, parsed_url)
                 if gl_result:
                     result = gl_result
-                    result['clowder_git_repo'] = True
-                    result['clowder_git_type'] = "gitlab"
-                    result['clowder_git_api_url'] = gl_api_url
+                    result["clowder_git_repo"] = True
+                    result["clowder_git_type"] = "gitlab"
+                    result["clowder_git_api_url"] = gl_api_url
 
     return result
+
 
 class URLExtractor(Extractor):
     def __init__(self):
@@ -120,12 +123,12 @@ class URLExtractor(Extractor):
         self.setup()
 
         # setup logging for the extractor
-        logging.getLogger('pyclowder').setLevel(logging.DEBUG)
-        logging.getLogger('__main__').setLevel(logging.DEBUG)
+        logging.getLogger("pyclowder").setLevel(logging.DEBUG)
+        logging.getLogger("__main__").setLevel(logging.DEBUG)
         self.logger = logging.getLogger(__name__)
 
-        self.selenium = os.getenv('SELENIUM_URI', 'http://localhost:4444/wd/hub')
-        self.window_size = (1366, 768)  # the default
+        self.selenium = os.getenv("SELENIUM_URI", "http://localhost:4444/wd/hub")
+        self.window_size = (1280, 720)  # the default
         self.read_settings()
 
     def read_settings(self, filename=None):
@@ -134,27 +137,32 @@ class URLExtractor(Extractor):
         :param filename: optional path to settings file (defaults to 'settings.yml' in the current directory)
         """
         if filename is None:
-            filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config", "settings.yml")
+            filename = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "config", "settings.yml"
+            )
 
         if not os.path.isfile(filename):
             self.logger.warning("No config file found at %s", filename)
             return
 
         try:
-            with open(filename, 'r') as settingsfile:
+            with open(filename, "r") as settingsfile:
                 settings = yaml.safe_load(settingsfile) or {}
                 if settings.get("window_size"):
                     self.window_size = tuple(settings.get("window_size"))
         except (IOError, yaml.YAMLError) as err:
-            self.logger.error("Failed to read or parse %s as settings file: %s", filename, err)
+            self.logger.error(
+                "Failed to read or parse %s as settings file: %s", filename, err
+            )
 
         self.logger.debug("Read settings from %s: %s", filename, self.window_size)
 
-    def check_message(self, connector, host, secret_key, resource,
-                      parameters):  # pylint: disable=unused-argument,too-many-arguments
+    def check_message(
+        self, connector, host, secret_key, resource, parameters
+    ):  # pylint: disable=unused-argument,too-many-arguments
         """Check if the extractor should download the file or ignore it."""
-        if not resource['file_ext'] == '.jsonurl':
-            if parameters.get('action', '') != 'manual-submission':
+        if not resource["file_ext"] == ".jsonurl":
+            if parameters.get("action", "") != "manual-submission":
                 self.logger.debug("Unknown filetype, skipping")
                 return pyclowder.utils.CheckMessage.ignore
             else:
@@ -162,23 +170,51 @@ class URLExtractor(Extractor):
 
         return pyclowder.utils.CheckMessage.download  # or bypass
 
-    def try_upload_preview_file(self, upload_func, connector, host, secret_key, resource_id, preview_file,
-                                parameters=None, allowed_failures=12, wait_between_failures=15):
+    def try_upload_preview_file(
+        self,
+        upload_func,
+        connector,
+        host,
+        secret_key,
+        resource_id,
+        preview_file,
+        parameters=None,
+        allowed_failures=12,
+        wait_between_failures=15,
+    ):
         # Compressing is very expensive, let's try to upload repeatedly for 3 minutes before failing
         for attempt in range(allowed_failures):
             try:
                 if attempt != 0:
                     time.sleep(wait_between_failures)
-                self.logger.info("Trying to upload preview file %s (Attempt %s)", preview_file, attempt)
+                self.logger.info(
+                    "Trying to upload preview file %s (Attempt %s)",
+                    preview_file,
+                    attempt,
+                )
                 if parameters is None:
-                    previewid = upload_func(connector, host, secret_key, resource_id, preview_file)
+                    previewid = upload_func(
+                        connector, host, secret_key, resource_id, preview_file
+                    )
                 else:
-                    previewid = upload_func(connector, host, secret_key, resource_id, preview_file, parameters)
+                    previewid = upload_func(
+                        connector,
+                        host,
+                        secret_key,
+                        resource_id,
+                        preview_file,
+                        parameters,
+                    )
             except Exception as ex:
                 template = "An exception of type {0} occurred. Arguments:\n{1!r}"
                 message = template.format(type(ex).__name__, ex.args)
-                self.logger.warning("Caught exception (attempt %s) for %s, trying up to %s times: %s", attempt,
-                                    preview_file, allowed_failures, message)
+                self.logger.warning(
+                    "Caught exception (attempt %s) for %s, trying up to %s times: %s",
+                    attempt,
+                    preview_file,
+                    allowed_failures,
+                    message,
+                )
             else:
                 break
         else:
@@ -187,8 +223,9 @@ class URLExtractor(Extractor):
 
         return previewid
 
-    def process_message(self, connector, host, secret_key, resource,
-                        parameters):  # pylint: disable=unused-argument,too-many-arguments
+    def process_message(
+        self, connector, host, secret_key, resource, parameters
+    ):  # pylint: disable=unused-argument,too-many-arguments
         """The actual extractor: we extract the URL from the JSON input and upload the results"""
         self.logger.debug("Clowder host: %s", host)
         self.logger.debug("Received resources: %s", resource)
@@ -196,93 +233,126 @@ class URLExtractor(Extractor):
 
         self.read_settings()
 
-        tempdir = tempfile.mkdtemp(prefix='clowder-url-extractor')
+        tempdir = tempfile.mkdtemp(prefix="clowder-url-extractor")
 
         try:
-            with open(resource['local_paths'][0], 'r') as inputfile:
+            with open(resource["local_paths"][0], "r") as inputfile:
                 urldata = json.load(inputfile)
-                url = urldata['URL']
+                url = urldata["URL"]
         except (IOError, ValueError, KeyError) as err:
-            self.logger.error("Failed to read or parse %s as URL input file: %s", resource['local_paths'][0], err)
+            self.logger.error(
+                "Failed to read or parse %s as URL input file: %s",
+                resource["local_paths"][0],
+                err,
+            )
 
         if not re.match(r"^https?:\/\/", url):
             self.logger.error("Invalid url: %s", url)
             return
 
         url_metadata = {
-            'URL': url,
-            'date': datetime.datetime.now().isoformat(),
+            "URL": url,
+            "date": datetime.datetime.now().isoformat(),
         }
 
         url_metadata.update(get_api_data(url))
 
-        if not url_metadata['clowder_git_repo']:
+        if not url_metadata["clowder_git_repo"]:
             try:
                 req = requests.get(url)
                 req.raise_for_status()
 
                 if req.headers.get("X-Frame-Options"):
-                    url_metadata['X-Frame-Options'] = req.headers['X-Frame-Options'].upper()
+                    url_metadata["X-Frame-Options"] = req.headers[
+                        "X-Frame-Options"
+                    ].upper()
 
                 try:
                     soup = BeautifulSoup(req.text)
-                    url_metadata['title'] = soup.find("title").string
+                    url_metadata["title"] = soup.find("title").string
                 except AttributeError as err:
-                    self.logger.error("Failed to extract title from webpage %s: %s", url, err)
-                    url_metadata['title'] = ''
+                    self.logger.error(
+                        "Failed to extract title from webpage %s: %s", url, err
+                    )
+                    url_metadata["title"] = ""
 
                 # Assume that we can use https for the link
-                url_metadata['tls'] = True
+                url_metadata["tls"] = True
                 if not url.startswith("https"):
                     # check if we can upgrade to https
                     req_https = requests.get(url.replace("http", "https", 1))
                     # currently, we only check for a 200 return code, maybe also check if page is the same?
                     if req_https.status_code != 200:
                         # we can't upgrade :(
-                        url_metadata['tls'] = False
+                        url_metadata["tls"] = False
 
             except requests.exceptions.RequestException as err:
                 self.logger.error("Failed to fetch URL %s: %s", url, err)
 
-            browser = None
-            try:
-                chrome_options = webdriver.ChromeOptions()
-                chrome_options.add_argument("--hide-scrollbars")
-                browser = webdriver.Remote(command_executor=self.selenium, options=chrome_options)
-                browser.set_script_timeout(30)
-                browser.set_page_load_timeout(30)
-                browser.set_window_size(self.window_size[0], self.window_size[1])
+        # Let's take a snapshot to also have an associated image
+        browser = None
+        try:
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("--hide-scrollbars")
+            browser = webdriver.Remote(
+                command_executor=self.selenium, options=chrome_options
+            )
+            browser.set_script_timeout(30)
+            browser.set_page_load_timeout(30)
+            browser.set_window_size(self.window_size[0], self.window_size[1])
 
-                browser.get(url)
+            browser.get(url)
 
-                screenshot_png = browser.get_screenshot_as_png()
+            screenshot_png = browser.get_screenshot_as_png()
 
-                screenshot_png_file = os.path.join(tempdir, "urlscreenshot.png")
-                screenshot_webp_file = os.path.join(tempdir, "urlscreenshot.webp")
-                with open(screenshot_png_file, 'wb') as f:
-                    f.write(screenshot_png)
-                subprocess.check_call(
-                    ["cwebp", "-quiet", screenshot_png_file, "-o", screenshot_webp_file]
-                )
+            screenshot_png_file = os.path.join(tempdir, "urlscreenshot.png")
+            screenshot_webp_file = os.path.join(tempdir, "urlscreenshot.webp")
+            with open(screenshot_png_file, "wb") as f:
+                f.write(screenshot_png)
+            subprocess.check_call(
+                ["cwebp", "-quiet", screenshot_png_file, "-o", screenshot_webp_file]
+            )
 
-                self.try_upload_preview_file(pyclowder.files.upload_preview, connector, host, secret_key, resource['id'],
-                                             screenshot_webp_file, parameters={})
+            preview_id = self.try_upload_preview_file(
+                pyclowder.files.upload_preview,
+                connector,
+                host,
+                secret_key,
+                resource["id"],
+                screenshot_webp_file,
+                parameters={},
+            )
 
-                # Also upload as a thumbnail
-                self.try_upload_preview_file(pyclowder.files.upload_thumbnail, connector, host, secret_key, resource['id'],
-                                             screenshot_webp_file)
-            except (TimeoutException, WebDriverException, IOError, MaxRetryError) as err:
-                self.logger.error("Failed to fetch %s: %s", url, err)
-            finally:
-                if browser:
-                    browser.quit()
+            # Also upload as a thumbnail
+            self.try_upload_preview_file(
+                pyclowder.files.upload_thumbnail,
+                connector,
+                host,
+                secret_key,
+                resource["id"],
+                screenshot_webp_file,
+            )
+            # Add the preview image to the available metadata
+            url_metadata["clowder_preview_image"] = preview_id
 
-        metadata = self.get_metadata(url_metadata, 'file', resource['id'], host)
+        except (TimeoutException, WebDriverException, IOError, MaxRetryError) as err:
+            self.logger.error("Failed to fetch %s: %s", url, err)
+        finally:
+            if browser:
+                browser.quit()
+
+        metadata = self.get_metadata(url_metadata, "file", resource["id"], host)
         self.logger.debug("New metadata: %s", metadata)
 
         # upload metadata
-        self.try_upload_preview_file(pyclowder.files.upload_metadata, connector, host, secret_key, resource['id'],
-                                     metadata)
+        self.try_upload_preview_file(
+            pyclowder.files.upload_metadata,
+            connector,
+            host,
+            secret_key,
+            resource["id"],
+            metadata,
+        )
 
         shutil.rmtree(tempdir, ignore_errors=True)
 
