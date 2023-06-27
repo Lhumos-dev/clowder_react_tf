@@ -128,7 +128,7 @@ class URLExtractor(Extractor):
         self.logger = logging.getLogger(__name__)
 
         self.selenium = os.getenv("SELENIUM_URI", "http://localhost:4444/wd/hub")
-        self.window_size = (1366, 768)  # the default
+        self.window_size = (1024, 768)  # the default
         self.read_settings()
 
     def read_settings(self, filename=None):
