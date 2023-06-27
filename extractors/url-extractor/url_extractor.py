@@ -268,7 +268,7 @@ class URLExtractor(Extractor):
                     ].upper()
 
                 try:
-                    soup = BeautifulSoup(req.text)
+                    soup = BeautifulSoup(req.content, "html.parser")
                     url_metadata["title"] = soup.find("title").string
                 except AttributeError as err:
                     self.logger.error(
