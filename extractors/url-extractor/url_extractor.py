@@ -124,18 +124,19 @@ def get_yt_video_id(url):
     - http://www.youtube.com/v/SA2iWivDJiE?version=3&amp;hl=en_US
     """
     query = urlparse(url)
-    if query.hostname == 'youtu.be':
+    if query.hostname == "youtu.be":
         return query.path[1:]
-    if query.hostname in ('www.youtube.com', 'youtube.com'):
-        if query.path == '/watch':
+    if query.hostname in ("www.youtube.com", "youtube.com"):
+        if query.path == "/watch":
             p = parse_qs(query.query)
-            return p['v'][0]
-        if query.path[:7] == '/embed/':
-            return query.path.split('/')[2]
-        if query.path[:3] == '/v/':
-            return query.path.split('/')[2]
+            return p["v"][0]
+        if query.path[:7] == "/embed/":
+            return query.path.split("/")[2]
+        if query.path[:3] == "/v/":
+            return query.path.split("/")[2]
     # fail?
     return None
+
 
 class URLExtractor(Extractor):
     def __init__(self):
@@ -312,8 +313,8 @@ class URLExtractor(Extractor):
         try:
             chrome_options = webdriver.ChromeOptions()
             chrome_options.add_argument("--hide-scrollbars")
-            chrome_options.add_argument('--disable-dev-shm-usage')
-            chrome_options.add_argument("--start-maximized");
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--start-maximized")
             browser = webdriver.Remote(
                 command_executor=self.selenium, options=chrome_options
             )
@@ -328,7 +329,6 @@ class URLExtractor(Extractor):
             # Keep backwards compatibility
             if not url_metadata["clowder_git_repo"]:
                 url_metadata["title"] = url_metadata["clowder_page_title"]
-
 
             screenshot_png_file = os.path.join(tempdir, "urlscreenshot.png")
             screenshot_webp_file = os.path.join(tempdir, "urlscreenshot.webp")
