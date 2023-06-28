@@ -213,7 +213,7 @@ class VideoMetaData(Extractor):
         self, connector, host, secret_key, resource, parameters
     ):  # pylint: disable=unused-argument,too-many-arguments
         """Check if the extractor should download the file or ignore it."""
-        accepted_formats = [".mp4", ".webm", ".avi", ".mpg", ".m4v"]
+        accepted_formats = [".mp4", ".webm", ".avi", ".mpg", ".m4v", ".mkv"]
         if not resource["file_ext"].lower() in accepted_formats:
             if parameters.get("action", "") != "manual-submission":
                 self.logger.debug(
