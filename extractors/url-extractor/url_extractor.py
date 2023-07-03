@@ -96,21 +96,21 @@ def get_api_data(url):
 
             # This construction ('org/repo') is useful for both GitLab and GitHub APIs
             repo = PosixPath(*path_components[1:3])
-            # See if this works for GitHub
-            gh_api_url, gh_result = get_github_api_repo_data(repo)
-            if gh_result:
-                result = gh_result
+            # If if this works for GitLab (should work for private and public instances)
+            gl_api_url, gl_result = get_gitlab_api_repo_data(repo, parsed_url)
+            if gl_result:
+                result = gl_result
                 result["clowder_git_repo"] = True
-                result["clowder_git_type"] = "github"
-                result["clowder_git_api_url"] = gh_api_url
+                result["clowder_git_type"] = "gitlab"
+                result["clowder_git_api_url"] = gl_api_url
             else:
-                # If that didn't work, try GitLab (should work for private and public instances)
-                gl_api_url, gl_result = get_gitlab_api_repo_data(repo, parsed_url)
-                if gl_result:
-                    result = gl_result
+                # If that didn't work, try GitHub (which uses a special API url)
+                gh_api_url, gh_result = get_github_api_repo_data(repo)
+                if gh_result:
+                    result = gh_result
                     result["clowder_git_repo"] = True
-                    result["clowder_git_type"] = "gitlab"
-                    result["clowder_git_api_url"] = gl_api_url
+                    result["clowder_git_type"] = "github"
+                    result["clowder_git_api_url"] = gh_api_url
 
     return result
 
