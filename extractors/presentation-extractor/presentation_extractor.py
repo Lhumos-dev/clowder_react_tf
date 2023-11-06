@@ -414,6 +414,8 @@ class VideoMetaData(Extractor):
         # processors so should be safe to leave in the background)
         self.logger.debug(resource)
         file_name = os.path.splitext(sanitize_filename(resource["name"]))[0]
+        # Only use alphanumerics
+        file_name = filter(str.isalnum, file_name)
         mp4_preview = "%s.mp4" % file_name
         webm_preview = "%s.webm" % file_name
         encode_job = multiprocessing.Process(
