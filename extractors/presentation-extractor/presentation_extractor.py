@@ -788,7 +788,7 @@ class VideoMetaData(Extractor):
         final_timestamp = cap.get(cv2.CAP_PROP_POS_MSEC)
         for slide in slides:
             # Set the time position of the slide for the grab
-            cap.set(cv2.CAP_PROP_POS_MSEC, min(slide[1] + msec_to_delay_screenshot, final_timestamp))
+            cap.set(cv2.CAP_PROP_POS_MSEC, slide[1] + msec_to_delay_screenshot)
             # Grab the image
             _, frame = cap.read()
             # Save the image
