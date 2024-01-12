@@ -793,7 +793,7 @@ class VideoMetaData(Extractor):
             _, frame = cap.read()
             # if it comes back blank, just use an empty white image
             if frame is None or frame.size == 0:
-                frame = np.ones((height, width, 3), np.uint8) * 255
+                frame = np.ones((int(height), int(width), 3), np.uint8) * 255
             # Save the image
             cv2.imwrite(slide[2], frame, [cv2.IMWRITE_WEBP_QUALITY, 80])
         # Add am empty slide to hold the terminating timestamp
