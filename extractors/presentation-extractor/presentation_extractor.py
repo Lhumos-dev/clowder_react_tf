@@ -791,10 +791,9 @@ class VideoMetaData(Extractor):
             cap.set(cv2.CAP_PROP_POS_MSEC, slide[1] + msec_to_delay_screenshot)
             # Grab the image
             _, frame = cap.read()
-            # if it comes back blank, just use an empty image
+            # if it comes back blank, just use an empty white image
             if frame is None or frame.size == 0:
-                frame = cv2.cv.CreateImage((width, height), 8, channels)
-                cv2.cv.SetZero(frame)
+                frame = np.ones((height, width, 3), np.uint8) * 255
             # Save the image
             cv2.imwrite(slide[2], frame, [cv2.IMWRITE_WEBP_QUALITY, 80])
         # Add am empty slide to hold the terminating timestamp
