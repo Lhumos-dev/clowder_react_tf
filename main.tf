@@ -243,7 +243,7 @@ resource "cloudflare_record" "clowder" {
   name    = "clowder"
   value   = openstack_compute_floatingip_associate_v2.fip_clowder.floating_ip
   type    = "A"
-  proxied = true
+  proxied = false
 }
 
 # Output VM IP Addresses
